@@ -1,28 +1,59 @@
-# Todo App
+# Todo App Phase II
 
-A full-stack todo application built with Next.js, FastAPI, and PostgreSQL.
-
-## Features
-
-- User authentication and authorization
-- Create, read, update, and delete tasks
-- Mark tasks as complete/incomplete
-- Responsive UI for all device sizes
+A full-stack todo application with user authentication, REST API, and database integration. The system allows users to register, authenticate, and manage their personal todo lists with proper data isolation between users.
 
 ## Tech Stack
 
 - **Frontend**: Next.js 16+, TypeScript, Tailwind CSS
-- **Backend**: Python FastAPI, SQLModel ORM
-- **Database**: PostgreSQL
-- **Authentication**: Better Auth
+- **Backend**: FastAPI, Python 3.11, SQLModel ORM
+- **Database**: PostgreSQL 14+
+- **Authentication**: JWT-based with Better Auth
+- **Styling**: Tailwind CSS
+
+## Project Structure
+
+```
+backend/
+├── src/
+│   ├── models/
+│   │   ├── user.py
+│   │   └── task.py
+│   ├── schemas/
+│   │   ├── user.py
+│   │   └── task.py
+│   ├── services/
+│   │   ├── user_service.py
+│   │   └── task_service.py
+│   ├── api/
+│   │   ├── auth.py
+│   │   └── tasks.py
+│   ├── auth/
+│   │   └── jwt.py
+│   └── main.py
+├── requirements.txt
+└── alembic/
+    └── versions/
+
+frontend/
+├── app/
+│   ├── (auth)/
+│   │   ├── login/
+│   │   └── signup/
+│   ├── dashboard/
+│   ├── components/
+│   │   ├── TaskForm.tsx
+│   │   ├── TaskItem.tsx
+│   │   └── TaskList.tsx
+│   ├── contexts/
+│   │   └── AuthContext.tsx
+│   └── types/
+│       └── task.ts
+├── package.json
+├── tailwind.config.js
+└── .env.local
+```
 
 ## Setup Instructions
-
-### Prerequisites
-
-- Node.js 18+
-- Python 3.9+
-- PostgreSQL (or use SQLite for development)
 
 ### Backend Setup
 
@@ -31,25 +62,33 @@ A full-stack todo application built with Next.js, FastAPI, and PostgreSQL.
    cd backend
    ```
 
-2. Create a virtual environment and install dependencies:
+2. Create and activate a virtual environment:
    ```bash
    python -m venv venv
    source venv/bin/activate  # On Windows: venv\Scripts\activate
+   ```
+
+3. Install dependencies:
+   ```bash
    pip install -r requirements.txt
    ```
 
-3. Set up environment variables:
-   ```bash
-   cp ../.env .env
-   # Update the .env file with your database credentials
+4. Set environment variables in `.env`:
+   ```env
+   DATABASE_URL=postgresql://username:password@localhost:5432/todo_app
+   JWT_SECRET=your-jwt-secret-here
+   ACCESS_TOKEN_EXPIRE_MINUTES=1440
    ```
 
-4. Run the application:
+5. Run database migrations:
    ```bash
-   python main.py
+   alembic upgrade head
    ```
 
-The backend will be available at `http://localhost:8000`.
+6. Start the backend server:
+   ```bash
+   uvicorn src.main:app --reload --port 8000
+   ```
 
 ### Frontend Setup
 
@@ -63,7 +102,12 @@ The backend will be available at `http://localhost:8000`.
    npm install
    ```
 
-3. Run the development server:
+3. Set environment variables in `.env.local`:
+   ```env
+   NEXT_PUBLIC_API_URL=http://localhost:8000
+   ```
+
+4. Start the development server:
    ```bash
    npm run dev
    ```
@@ -73,39 +117,20 @@ The frontend will be available at `http://localhost:3000`.
 ## API Endpoints
 
 ### Authentication
-- `POST /api/auth/register` - User registration
-- `POST /api/auth/login` - User login
-- `GET /api/auth/me` - Get current user info
+- `POST /api/auth/signup` - Create new user account
+- `POST /api/auth/signin` - Login user
+- `POST /api/auth/signout` - Logout user
 
 ### Tasks
-- `GET /api/tasks` - Get all user's tasks
+- `GET /api/tasks` - Get all user tasks
 - `POST /api/tasks` - Create new task
-- `GET /api/tasks/{task_id}` - Get specific task
-- `PUT /api/tasks/{task_id}` - Update task
-- `DELETE /api/tasks/{task_id}` - Delete task
-- `PATCH /api/tasks/{task_id}/complete` - Mark task as complete/incomplete
+- `GET /api/tasks/{id}` - Get specific task
+- `PUT /api/tasks/{id}` - Update task
+- `DELETE /api/tasks/{id}` - Delete task
 
-## Environment Variables
+## Security Features
 
-The application uses the following environment variables:
-
-- `DATABASE_URL` - Database connection string
-- `BETTER_AUTH_SECRET` - Secret key for authentication
-- `BETTER_AUTH_URL` - Base URL for auth
-- `NEXT_PUBLIC_API_URL` - API URL for frontend
-
-## Running Tests
-
-Backend tests:
-```bash
-cd backend
-python -m pytest tests/
-```
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
+- JWT-based authentication required for all protected endpoints
+- User data isolation - users can only access their own tasks
+- Input validation on all endpoints
+- Proper error handling without information leakage

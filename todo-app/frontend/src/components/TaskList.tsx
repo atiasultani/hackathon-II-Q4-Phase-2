@@ -23,7 +23,9 @@ const TaskList: React.FC<TaskListProps> = ({ userId }) => {
       const userTasks = await apiClient.getUserTasks(userId);
       setTasks(userTasks);
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Failed to load tasks. Please try again.');
+      // Ensure we only set string values to error state
+      const errorMessage = err.response?.data?.detail || 'Failed to load tasks. Please try again.';
+      setError(typeof errorMessage === 'string' ? errorMessage : 'Failed to load tasks. Please try again.');
     } finally {
       setLoading(false);
     }

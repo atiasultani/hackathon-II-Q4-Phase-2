@@ -34,7 +34,9 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, userId, onTaskUpdated, onTask
         onTaskUpdated(updatedTask);
       }
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Failed to update task. Please try again.');
+      // Ensure we only set string values to error state
+      const errorMessage = err.response?.data?.detail || 'Failed to update task. Please try again.';
+      setError(typeof errorMessage === 'string' ? errorMessage : 'Failed to update task. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -54,7 +56,9 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, userId, onTaskUpdated, onTask
         onTaskDeleted(task.id);
       }
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Failed to delete task. Please try again.');
+      // Ensure we only set string values to error state
+      const errorMessage = err.response?.data?.detail || 'Failed to delete task. Please try again.';
+      setError(typeof errorMessage === 'string' ? errorMessage : 'Failed to delete task. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -74,7 +78,9 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, userId, onTaskUpdated, onTask
       }
       setIsEditing(false);
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Failed to update task. Please try again.');
+      // Ensure we only set string values to error state
+      const errorMessage = err.response?.data?.detail || 'Failed to update task. Please try again.';
+      setError(typeof errorMessage === 'string' ? errorMessage : 'Failed to update task. Please try again.');
     } finally {
       setLoading(false);
     }

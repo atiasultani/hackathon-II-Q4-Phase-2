@@ -45,7 +45,7 @@ class ApiClient {
   // Authentication methods
   async register(email: string, password: string) {
     try {
-      const response = await this.client.post('/auth/register', {
+      const response = await this.client.post('/api/auth/register', {
         email,
         password,
       });
@@ -58,7 +58,7 @@ class ApiClient {
   async login(email: string, password: string) {
     try {
       // For login, we need to use the default axios instance without the auth header
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000'}/auth/login`, {
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000'}/api/auth/login`, {
         username: email,  // Using username for email field
         password,
       }, {
@@ -80,7 +80,7 @@ class ApiClient {
 
   async logout() {
     try {
-      await this.client.post('/auth/logout');
+      await this.client.post('/api/auth/logout');
     } finally {
       // Always remove the token regardless of API response
       localStorage.removeItem('access_token');
@@ -90,7 +90,7 @@ class ApiClient {
   // Task methods
   async getUserTasks(userId: string) {
     try {
-      const response = await this.client.get(`/${userId}/tasks`);
+      const response = await this.client.get(`/api/${userId}/tasks`);
       return response.data;
     } catch (error) {
       throw error;
@@ -99,7 +99,7 @@ class ApiClient {
 
   async createTask(userId: string, taskData: { title: string; description?: string }) {
     try {
-      const response = await this.client.post(`/${userId}/tasks`, taskData);
+      const response = await this.client.post(`/api/${userId}/tasks`, taskData);
       return response.data;
     } catch (error) {
       throw error;
@@ -108,7 +108,7 @@ class ApiClient {
 
   async updateTask(userId: string, taskId: string, taskData: { title?: string; description?: string }) {
     try {
-      const response = await this.client.put(`/${userId}/tasks/${taskId}`, taskData);
+      const response = await this.client.put(`/api/${userId}/tasks/${taskId}`, taskData);
       return response.data;
     } catch (error) {
       throw error;
@@ -117,7 +117,7 @@ class ApiClient {
 
   async deleteTask(userId: string, taskId: string) {
     try {
-      const response = await this.client.delete(`/${userId}/tasks/${taskId}`);
+      const response = await this.client.delete(`/api/${userId}/tasks/${taskId}`);
       return response.data;
     } catch (error) {
       throw error;
@@ -126,7 +126,7 @@ class ApiClient {
 
   async toggleTaskCompletion(userId: string, taskId: string, completed: boolean) {
     try {
-      const response = await this.client.patch(`/${userId}/tasks/${taskId}/complete`, {
+      const response = await this.client.patch(`/api/${userId}/tasks/${taskId}/complete`, {
         completed
       });
       return response.data;

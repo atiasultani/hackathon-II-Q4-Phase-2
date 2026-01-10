@@ -12,15 +12,23 @@ from ..schemas.user import TokenData
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    """Verify a plain password against a hashed password."""
-    return pwd_context.verify(plain_password, hashed_password)
+def _bcrypt_safe(password: str) -> str:
+    # bcrypt limit is 72 BYTES, not chars
+    b = password.encode("utf-8")
+    if len(b) > 72:
+        b = b[:72]
+        return b.decode("utf-8", errors="ignore")
+    return password
 
 
 def get_password_hash(password: str) -> str:
-    """Hash a plain password."""
-    return pwd_context.hash(password)
+    safe = _bcrypt_safe(password)
+    return pwd_context.hash(safe)
 
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    safe = _bcrypt_safe(plain_password)
+    return pwd_context.verify(safe, hashed_password)
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     """Create a JWT access token."""

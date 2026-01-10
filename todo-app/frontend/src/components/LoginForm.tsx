@@ -25,7 +25,9 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess, switchToRegister 
         onLoginSuccess();
       }
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Login failed. Please check your credentials.');
+      // Ensure we only set string values to error state
+      const errorMessage = err.response?.data?.detail || 'Login failed. Please check your credentials.';
+      setError(typeof errorMessage === 'string' ? errorMessage : 'Login failed. Please check your credentials.');
     } finally {
       setLoading(false);
     }

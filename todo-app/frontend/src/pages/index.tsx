@@ -1,21 +1,24 @@
-import React, { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import TaskForm from '../components/TaskForm';
 import TaskList from '../components/TaskList';
-import apiClient from '../services/apiClient';
 
 const DashboardPage: React.FC = () => {
   const { user, logout, loading } = useAuth();
   const [showTaskForm, setShowTaskForm] = useState(false);
+  const [mounted, setMounted] = useState(false); // ⚡ client-only flag
 
   useEffect(() => {
-    if (!loading && !user) {
-      // Redirect to login if not authenticated
-      window.location.href = '/login';
-    }
-  }, [user, loading]);
+    setMounted(true); // now client-side
+  }, []);
 
-  if (loading) {
+  useEffect(() => {
+    if (mounted && !loading && !user) {
+      window.location.href = '/login'; // redirect if not authenticated
+    }
+  }, [user, loading, mounted]);
+
+  if (!mounted || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
@@ -23,9 +26,7 @@ const DashboardPage: React.FC = () => {
     );
   }
 
-  if (!user) {
-    return null; // Redirect happens in useEffect
-  }
+  if (!user) return null;
 
   const handleTaskCreated = () => {
     setShowTaskForm(false);
@@ -33,6 +34,7 @@ const DashboardPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* ... rest of your JSX */}
       <nav className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">

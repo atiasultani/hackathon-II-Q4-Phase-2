@@ -29,7 +29,9 @@ const TaskForm: React.FC<TaskFormProps> = ({ userId, onTaskCreated, onCancel }) 
       }
       setTaskData({ title: '', description: '' });
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Failed to create task. Please try again.');
+      // Ensure we only set string values to error state
+      const errorMessage = err.response?.data?.detail || 'Failed to create task. Please try again.';
+      setError(typeof errorMessage === 'string' ? errorMessage : 'Failed to create task. Please try again.');
     } finally {
       setLoading(false);
     }

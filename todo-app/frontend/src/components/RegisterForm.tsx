@@ -37,7 +37,9 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess, switchTo
         onRegisterSuccess();
       }
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Registration failed. Please try again.');
+      // Ensure we only set string values to error state
+      const errorMessage = err.response?.data?.detail || 'Registration failed. Please try again.';
+      setError(typeof errorMessage === 'string' ? errorMessage : 'Registration failed. Please try again.');
     } finally {
       setLoading(false);
     }

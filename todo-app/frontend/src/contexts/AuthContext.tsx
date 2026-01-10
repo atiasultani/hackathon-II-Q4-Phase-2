@@ -1,5 +1,25 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { useRouter } from 'next/router';
 import apiClient from '../services/apiClient';
+
+// Helper function to decode JWT token
+const decodeJWT = (token: string) => {
+  try {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+
+    return JSON.parse(jsonPayload);
+  } catch (error) {
+    console.error('Error decoding JWT:', error);
+    return null;
+  }
+};
 
 interface User {
   id: string;
@@ -35,13 +55,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     // Check if there's a token in localStorage on initial load
     const storedToken = localStorage.getItem('access_token');
     if (storedToken) {
       setToken(storedToken);
-      // You might want to validate the token or fetch user info here
+      // Decode the stored token to get user ID
+      const decodedToken = decodeJWT(storedToken);
+      if (decodedToken && decodedToken.sub) {
+        // We don't have the email when loading from stored token,
+        // but we can set the ID at least
+        setUser({
+          id: decodedToken.sub,
+          email: '', // Email will be unknown when loading from stored token
+          created_at: '',
+          updated_at: ''
+        });
+      }
     }
     setLoading(false);
   }, []);
@@ -53,7 +85,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (response.access_token) {
         setToken(response.access_token);
         localStorage.setItem('access_token', response.access_token);
-        // You might want to fetch user info here
+
+        // Decode the JWT to get the user ID from the 'sub' claim
+        const decodedToken = decodeJWT(response.access_token);
+        if (decodedToken && decodedToken.sub) {
+          // Set the user object with the ID from the token and email provided
+          setUser({
+            id: decodedToken.sub,
+            email,
+            created_at: '',
+            updated_at: ''
+          });
+        }
+
+        // Redirect to dashboard after successful login
+        router.push('/');
       }
     } catch (error) {
       throw error;
@@ -67,12 +113,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setToken(null);
     setUser(null);
     localStorage.removeItem('access_token');
+    // Redirect to login page after logout
+    router.push('/login');
   };
 
   const register = async (email: string, password: string) => {
     try {
       setLoading(true);
-      await apiClient.register(email, password);
+      const registerResponse = await apiClient.register(email, password);
       // Automatically log in after registration
       await login(email, password);
     } catch (error) {

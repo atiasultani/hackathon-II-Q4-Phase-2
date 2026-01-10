@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlmodel import Session
 from typing import List
 import uuid
@@ -15,8 +16,11 @@ from ..utils.error_handlers import handle_unauthorized_error, handle_forbidden_e
 
 router = APIRouter()
 
+# Security scheme for bearer token
+security = HTTPBearer()
 
-def get_current_user(token: str = Depends(lambda: None), session: Session = Depends(get_session)):
+
+def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security), session: Session = Depends(get_session)):
     """Get the current authenticated user based on the token."""
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -24,25 +28,16 @@ def get_current_user(token: str = Depends(lambda: None), session: Session = Depe
         headers={"WWW-Authenticate": "Bearer"},
     )
 
-    # Extract token from the Authorization header
-    # This function is a placeholder - actual token extraction happens in the endpoint
-    pass
+    token = credentials.credentials
+    token_data = verify_token(token, credentials_exception)
+    return token_data
 
 
 @router.get("/{user_id}/tasks", response_model=List[TaskRead])
-def get_user_tasks(user_id: uuid.UUID, token: str, session: Session = Depends(get_session)):
+def get_user_tasks(user_id: uuid.UUID, current_user: TokenData = Depends(get_current_user), session: Session = Depends(get_session)):
     """Get all tasks for a specific user."""
-    # Verify the token and extract user data
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-
-    token_data = verify_token(token, credentials_exception)
-
     # Verify that the token user_id matches the requested user_id
-    if token_data.user_id != user_id:
+    if current_user.user_id != user_id:
         handle_forbidden_error("Not authorized to access this user's tasks")
 
     # Get tasks for the user
@@ -51,19 +46,10 @@ def get_user_tasks(user_id: uuid.UUID, token: str, session: Session = Depends(ge
 
 
 @router.post("/{user_id}/tasks", response_model=TaskRead)
-def create_task(user_id: uuid.UUID, task_create: TaskCreate, token: str, session: Session = Depends(get_session)):
+def create_task(user_id: uuid.UUID, task_create: TaskCreate, current_user: TokenData = Depends(get_current_user), session: Session = Depends(get_session)):
     """Create a new task for a specific user."""
-    # Verify the token and extract user data
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-
-    token_data = verify_token(token, credentials_exception)
-
     # Verify that the token user_id matches the requested user_id
-    if token_data.user_id != user_id:
+    if current_user.user_id != user_id:
         handle_forbidden_error("Not authorized to create tasks for this user")
 
     # Create the task
@@ -72,19 +58,10 @@ def create_task(user_id: uuid.UUID, task_create: TaskCreate, token: str, session
 
 
 @router.get("/{user_id}/tasks/{id}", response_model=TaskRead)
-def get_task(user_id: uuid.UUID, id: uuid.UUID, token: str, session: Session = Depends(get_session)):
+def get_task(user_id: uuid.UUID, id: uuid.UUID, current_user: TokenData = Depends(get_current_user), session: Session = Depends(get_session)):
     """Get a specific task for a specific user."""
-    # Verify the token and extract user data
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-
-    token_data = verify_token(token, credentials_exception)
-
     # Verify that the token user_id matches the requested user_id
-    if token_data.user_id != user_id:
+    if current_user.user_id != user_id:
         handle_forbidden_error("Not authorized to access this user's task")
 
     # Get the task
@@ -96,19 +73,10 @@ def get_task(user_id: uuid.UUID, id: uuid.UUID, token: str, session: Session = D
 
 
 @router.put("/{user_id}/tasks/{id}", response_model=TaskRead)
-def update_task(user_id: uuid.UUID, id: uuid.UUID, task_update: TaskUpdate, token: str, session: Session = Depends(get_session)):
+def update_task(user_id: uuid.UUID, id: uuid.UUID, task_update: TaskUpdate, current_user: TokenData = Depends(get_current_user), session: Session = Depends(get_session)):
     """Update a specific task for a specific user."""
-    # Verify the token and extract user data
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-
-    token_data = verify_token(token, credentials_exception)
-
     # Verify that the token user_id matches the requested user_id
-    if token_data.user_id != user_id:
+    if current_user.user_id != user_id:
         handle_forbidden_error("Not authorized to update this user's task")
 
     # Update the task
@@ -120,19 +88,10 @@ def update_task(user_id: uuid.UUID, id: uuid.UUID, task_update: TaskUpdate, toke
 
 
 @router.delete("/{user_id}/tasks/{id}")
-def delete_task(user_id: uuid.UUID, id: uuid.UUID, token: str, session: Session = Depends(get_session)):
+def delete_task(user_id: uuid.UUID, id: uuid.UUID, current_user: TokenData = Depends(get_current_user), session: Session = Depends(get_session)):
     """Delete a specific task for a specific user."""
-    # Verify the token and extract user data
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-
-    token_data = verify_token(token, credentials_exception)
-
     # Verify that the token user_id matches the requested user_id
-    if token_data.user_id != user_id:
+    if current_user.user_id != user_id:
         handle_forbidden_error("Not authorized to delete this user's task")
 
     # Delete the task
@@ -144,19 +103,10 @@ def delete_task(user_id: uuid.UUID, id: uuid.UUID, token: str, session: Session 
 
 
 @router.patch("/{user_id}/tasks/{id}/complete", response_model=TaskRead)
-def toggle_task_completion(user_id: uuid.UUID, id: uuid.UUID, task_toggle: TaskToggleComplete, token: str, session: Session = Depends(get_session)):
+def toggle_task_completion(user_id: uuid.UUID, id: uuid.UUID, task_toggle: TaskToggleComplete, current_user: TokenData = Depends(get_current_user), session: Session = Depends(get_session)):
     """Toggle the completion status of a specific task for a specific user."""
-    # Verify the token and extract user data
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-
-    token_data = verify_token(token, credentials_exception)
-
     # Verify that the token user_id matches the requested user_id
-    if token_data.user_id != user_id:
+    if current_user.user_id != user_id:
         handle_forbidden_error("Not authorized to update this user's task")
 
     # Toggle task completion

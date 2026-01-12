@@ -1,0 +1,9 @@
+runtime:
+  python_version: "3.11"
+
+dependencies:
+  - pip:
+    - -r ./backend/requirements.txt
+
+app_file: app.py
+app_function: app

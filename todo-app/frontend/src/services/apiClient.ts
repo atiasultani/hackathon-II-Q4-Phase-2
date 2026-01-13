@@ -58,7 +58,7 @@ class ApiClient {
   async login(email: string, password: string) {
     try {
       // For login, we need to use the default axios instance without the auth header
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000'}/api/auth/login`, {
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_BASE_URL || 'https://asultani-todo-app.hf.space'}/api/auth/login`, {
         username: email,  // Using username for email field
         password,
       }, {

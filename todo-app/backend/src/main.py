@@ -8,7 +8,8 @@ app = FastAPI(title="Todo API", version="1.0.0")
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, replace with specific origins
+    allow_origins=["*",
+    "https://hackathon-ii-q4-phase-2-v8x7-mr43bfwyo-atiasultanis-projects.vercel.app/login"],  # In production, replace with specific origins
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

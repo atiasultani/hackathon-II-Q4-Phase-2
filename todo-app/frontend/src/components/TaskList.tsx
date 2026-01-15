@@ -4,16 +4,17 @@ import apiClient from '../services/apiClient';
 
 interface TaskListProps {
   userId: string;
+  refreshSignal?: number;   // ✅ ADD THIS
 }
 
-const TaskList: React.FC<TaskListProps> = ({ userId }) => {
+const TaskList: React.FC<TaskListProps> = ({ userId , refreshSignal}) => {
   const [tasks, setTasks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
     loadTasks();
-  }, [userId]);
+  }, [userId refreshSignal]);
 
   const loadTasks = async () => {
     setLoading(true);

@@ -14,7 +14,7 @@ const TaskList: React.FC<TaskListProps> = ({ userId , refreshSignal}) => {
 
   useEffect(() => {
     loadTasks();
-  }, [userId refreshSignal]);
+  }, [userId , refreshSignal]);
 
   const loadTasks = async () => {
     setLoading(true);

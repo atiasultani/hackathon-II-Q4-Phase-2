@@ -7,6 +7,7 @@ const DashboardPage: React.FC = () => {
   const { user, logout, loading } = useAuth();
   const [showTaskForm, setShowTaskForm] = useState(false);
   const [mounted, setMounted] = useState(false); // ⚡ client-only flag
+  const [refreshTasks, setRefreshTasks] = useState(0);   // ✅ ADD THIS
 
   useEffect(() => {
     setMounted(true); // now client-side
@@ -30,6 +31,7 @@ const DashboardPage: React.FC = () => {
 
   const handleTaskCreated = () => {
     setShowTaskForm(false);
+    setRefreshTasks(prev => prev + 1);   // ✅ trigger task reload
   };
 
   return (
@@ -78,7 +80,7 @@ const DashboardPage: React.FC = () => {
 
           <div className="bg-white overflow-hidden shadow rounded-lg">
             <div className="px-4 py-5 sm:p-6">
-              <TaskList userId={user.id} />
+              <TaskList userId={user.id}  refreshSignal={refreshTasks} />
             </div>
           </div>
         </div>
